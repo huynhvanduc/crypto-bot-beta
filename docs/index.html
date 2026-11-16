@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Bot Beta</title>
+<meta name="robots" content="noindex">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f5f2; --card: #fcfcfb; --line: #e8e6e1;
+  --t1: #0b0b0b; --t2: #52514e; --t3: #8a8984;
+  --accent: #2a78d6; --good: #1b7f3b; --bad: #c0392b; --warn-bg: #fff4dc; --warn: #7a4b00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --card: #1a1a19; --line: #2a2a28;
+    --t1: #f0efec; --t2: #c3c2b7; --t3: #8f8e88;
+    --accent: #3987e5; --good: #4cc27a; --bad: #ef6b5e; --warn-bg: #3a2c0d; --warn: #f3c86b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --card: #1a1a19; --line: #2a2a28;
+  --t1: #f0efec; --t2: #c3c2b7; --t3: #8f8e88;
+  --accent: #3987e5; --good: #4cc27a; --bad: #ef6b5e; --warn-bg: #3a2c0d; --warn: #f3c86b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--t1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-variant-numeric: tabular-nums; }
+main { max-width: 2400px; margin: 0 auto; padding: 14px 16px 32px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "a" "b" "c"; column-gap: 10px; align-items: start; }
+.grid > div { min-width: 0; }
+.col-a { grid-area: a; } .col-b { grid-area: b; } .col-c { grid-area: c; }
+@media (min-width: 1100px) {
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "a b" "c b"; grid-template-rows: auto 1fr; }
+}
+@media (min-width: 1700px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "a b c"; grid-template-rows: auto; }
+}
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 10px; }
+h1 { font-size: 17px; margin: 0; }
+.meta { color: var(--t3); font-size: 12px; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--t3); margin-right: 5px; vertical-align: 1px; }
+.dot.on { background: var(--good); animation: pulse 2s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.kpi .l { font-size: 11px; color: var(--t2); }
+.kpi .v { font-size: 18px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .d { font-size: 11px; color: var(--t3); white-space: nowrap; }
+@media (max-width: 520px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.alert { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 7px 10px; margin-bottom: 10px; font-size: 13px; }
+h2 { font-size: 13px; margin: 0 0 6px; color: var(--t2); font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+h2 .meta { font-weight: 400; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-weight: 500; color: var(--t3); font-size: 11.5px; padding: 3px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 4px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+.r { text-align: right; }
+.wrap { overflow-x: auto; }
+.pos { color: var(--good); } .neg { color: var(--bad); } .mut { color: var(--t3); font-size: 11.5px; }
+.up { color: var(--good); } .down { color: var(--bad); }
+.bar { display: inline-block; height: 5px; border-radius: 3px; background: var(--accent); opacity: .75; margin-right: 6px; vertical-align: middle; }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--t3); }
+.pager button.link:disabled { color: var(--t3); cursor: default; opacity: .5; }
+button.link { background: none; border: 0; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 0 0; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 120px; }
+.tip { position: absolute; pointer-events: none; background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 8px; font-size: 12px; display: none; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+summary { cursor: pointer; color: var(--t2); font-size: 13px; }
+details .sec { margin-top: 10px; }
+.log { font: 11.5px/1.55 ui-monospace, Consolas, monospace; color: var(--t2); max-height: 180px; overflow: auto; white-space: pre-wrap; }
+.empty { color: var(--t3); font-size: 13px; margin: 2px 0; }
+td { transition: background 1.5s; }
+tr.new td { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.tag { display: inline-block; font-size: 10.5px; line-height: 1; padding: 2px 5px; border-radius: 4px; background: var(--line); color: var(--t2); }
+.tag.n { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>Crypto Bot Beta</h1>
+    <span class="meta" id="state">…</span>
+    <span class="meta" id="live"></span>
+  </div>
+  <div id="alert"></div>
+  <section class="kpis" id="kpis"></section>
+  <div class="grid">
+  <div class="col-a">
+  <section class="card" id="fl-card" hidden>
+    <h2>Khớp lệnh trực tiếp <span class="meta" id="fl-meta"></span></h2>
+    <div class="wrap" id="fills"></div>
+    <div class="pager" id="fills-pager"></div>
+  </section>
+  <section class="card" id="pos-card" hidden><h2>Lệnh đang mở <span class="meta">gần stop nhất ở trên</span></h2><div class="wrap" id="positions"></div><div class="pager" id="positions-pager"></div></section>
+  </div>
+  <div class="col-b">
+  <section class="card" id="mt-card" hidden>
+    <h2>Lệnh khác (tay/lướt sóng) <span class="meta" id="mt-meta"></span></h2>
+    <div class="wrap" id="manual"></div>
+    <div class="pager" id="manual-pager"></div>
+  </section>
+  <section class="card">
+    <h2>Radar — gần điểm mua nhất <span class="meta">mua khi đóng cửa ngày vượt mốc</span></h2>
+    <div class="wrap" id="radar"></div>
+    <div class="pager" id="radar-pager"></div>
+  </section>
+  </div>
+  <div class="col-c">
+  <section class="card" id="eq-card" hidden><h2>Vốn (USDT)</h2><div class="chart" id="chart"><div class="tip" id="tip"></div></div></section>
+  <section class="card" id="sh-card" hidden>
+    <h2>Thí nghiệm song song <span class="meta" id="sh-meta"></span></h2>
+    <div class="wrap" id="shadow"></div>
+  </section>
+  <section class="card" id="tr-card" hidden><h2 id="tr-h">Lệnh gần đây</h2><div class="wrap" id="trades"></div><div class="pager" id="trades-pager"></div></section>
+  <details>
+    <summary>Chi tiết</summary>
+    <div class="sec mut" id="about"></div>
+    <div class="sec"><h2>So với backtest</h2><div class="wrap" id="compare"></div></div>
+    <div class="sec"><h2>Nhật ký bot</h2><div class="log" id="log"></div></div>
+  </details>
+  </div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 2) => Number(v).toLocaleString("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d });
+const px = v => Number(v).toLocaleString("vi-VN", { maximumSignificantDigits: Math.abs(v) >= 1000 ? 7 : 5 });
+const pct = (v, d = 2) => { v = Math.abs(v) < 0.5 * 10 ** -d ? 0 : v; return (v > 0 ? "+" : "") + fmt(v, d) + "%"; };
+const sgn = (v, d = 2) => (v > 0 ? "+" : "") + fmt(v, d);
+const cls = v => v > 0.005 ? "pos" : v < -0.005 ? "neg" : "";
+const vnTime = iso => iso ? new Date(iso).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour12: false, hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" }) : "—";
+const vnDate = iso => iso ? new Date(iso).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit" }) : "—";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const coin = s => esc(s.replace("USDT", ""));
+
+function table(cols, rows, rowCls) {
+  if (!rows.length) return "";
+  return `<table><thead><tr>${cols.map(c => `<th class="${c.r ? "r" : ""}">${c.h}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr class="${rowCls ? rowCls(r) : ""}">` + cols.map(c => `<td class="${c.r ? "r " : ""}${c.c ? c.c(r) : ""}">${c.f(r)}</td>`).join("") + "</tr>").join("") +
+    "</tbody></table>";
+}
+const kpi = (l, v, d = "", c = "") => `<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div><div class="d">${d}</div></div>`;
+
+function chart(points, start) {
+  const card = $("eq-card"), el = $("chart"), tip = $("tip");
+  card.hidden = points.length < 2 || !(DATA.trades.length || DATA.positions.length);
+  if (card.hidden) return;
+  el.querySelector("svg")?.remove();
+  const W = el.clientWidth || 700, H = 120, m = { l: 4, r: 4, t: 8, b: 8 };
+  const xs = points.map(p => +new Date(p.t)), ys = points.map(p => p.equity);
+  let y0 = Math.min(start, ...ys), y1 = Math.max(start, ...ys);
+  const pad = (y1 - y0) * 0.12 || start * 0.005; y0 -= pad; y1 += pad;
+  const x = t => m.l + (t - xs[0]) / (xs.at(-1) - xs[0] || 1) * (W - m.l - m.r);
+  const y = v => m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b);
+  const d = ys.map((v, i) => `${i ? "L" : "M"}${x(xs[i]).toFixed(1)},${y(v).toFixed(1)}`).join("");
+  el.insertAdjacentHTML("afterbegin", `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Đường vốn">
+    <line x1="0" x2="${W}" y1="${y(start)}" y2="${y(start)}" stroke="var(--t3)" stroke-dasharray="3 4"/>
+    <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+    <circle id="dot" r="4" fill="var(--accent)" stroke="var(--card)" stroke-width="2" visibility="hidden"/>
+    <rect width="${W}" height="${H}" fill="transparent" id="hit"/></svg>`);
+  const svg = el.querySelector("svg"), dot = svg.querySelector("#dot");
+  svg.querySelector("#hit").onpointermove = ev => {
+    const r = svg.getBoundingClientRect(), mx = (ev.clientX - r.left) * W / r.width;
+    let i = 0; xs.forEach((t, k) => { if (Math.abs(x(t) - mx) < Math.abs(x(xs[i]) - mx)) i = k; });
+    dot.setAttribute("cx", x(xs[i])); dot.setAttribute("cy", y(ys[i])); dot.setAttribute("visibility", "visible");
+    tip.innerHTML = `<b>${fmt(ys[i])}</b> <span class="${cls(ys[i] - start)}">${pct((ys[i] / start - 1) * 100)}</span> · ${vnTime(points[i].t)}`;
+    tip.style.display = "block";
+    tip.style.left = Math.min(Math.max(x(xs[i]) * r.width / W - tip.offsetWidth / 2, 0), r.width - tip.offsetWidth) + "px";
+    tip.style.top = "-6px";
+  };
+  svg.querySelector("#hit").onpointerleave = () => { dot.setAttribute("visibility", "hidden"); tip.style.display = "none"; };
+}
+
+let DATA = null, LIVE = {}, FLASH = {}, LIVE_OK = false, LAST_TICK = 0, WS = null, WS_KEY = "", POLL = null, DIRTY = false;
+const PAGES = {};
+function paged(id, rows, per, unit) {
+  const pages = Math.max(1, Math.ceil(rows.length / per));
+  const p = PAGES[id] = Math.min(PAGES[id] || 0, pages - 1);
+  const el = $(id + "-pager");
+  el.hidden = pages < 2;
+  el.innerHTML = `<button class="link" data-p="-1"${p ? "" : " disabled"}>‹ Trước</button>` +
+    `<span>Trang ${p + 1}/${pages} · ${rows.length} ${unit}</span>` +
+    `<button class="link" data-p="1"${p < pages - 1 ? "" : " disabled"}>Sau ›</button>`;
+  return rows.slice(p * per, (p + 1) * per);
+}
+let FILLS = null, RT = [], RT_USDT = null, NEW = {}, NT = null, NT_OK = false, NT_TOPIC = "", REFETCH = null;
+const SRC = { d1: "Bot D1", scalp: "Lướt sóng", nc: "Nghiên cứu", tay: "Tay" };
+const fkey = f => f.symbol + ":" + f.trade_id;
+const vnClock = ms => new Date(ms).toLocaleTimeString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour12: false });
+const fillsUpdated = () => FILLS ? +new Date(FILLS.updated) : 0;
+const srcTag = s => `<span class="tag">${esc(SRC[s] || s)}</span>`;
+
+function allFills() {
+  const base = FILLS?.fills || [], seen = new Set(base.map(fkey));
+  return [...RT.filter(f => !seen.has(fkey(f))), ...base].sort((a, b) => b.ms - a.ms || b.trade_id - a.trade_id);
+}
+function usdtNow(D) {
+  if (RT_USDT && RT_USDT.ms > fillsUpdated()) return RT_USDT.v;
+  if (FILLS && Number.isFinite(FILLS.usdt)) return FILLS.usdt;
+  return Number.isFinite(D.account?.usdt) ? D.account.usdt : null;
+}
+
+function renderLive() {
+  const D = DATA; if (!D) return;
+  const cap = D.initial_capital, m = D.metrics;
+  let delta = 0;
+  const positions = D.positions.map(r => {
+    const p = LIVE[r.symbol] ?? r.price, v0 = r.qty * r.price * 0.999, v1 = r.qty * p * 0.999, cost = v0 - r.pnl_usdt;
+    delta += v1 - v0;
+    return { ...r, price: p, pnl_usdt: v1 - cost, pnl_pct: (v1 / cost - 1) * 100, risk_pct: (r.stop / p - 1) * 100 };
+  }).sort((a, b) => b.risk_pct - a.risk_pct);
+  const equity = D.equity + delta, ret = (equity / cap - 1) * 100;
+  const radar = (D.radar || []).filter(r => r.status !== "Đang giữ").map(r => {
+    const p = LIVE[r.symbol] ?? r.price, need = Math.max(r.breakout, r.ema200);
+    return { ...r, price: p, need, target: r.ema200 >= r.breakout ? "EMA200" : "đỉnh 20N",
+             gap: (need / p - 1) * 100, over: p > need };
+  }).sort((a, b) => a.gap - b.gap);
+
+  const usdt = usdtNow(D), M = liveTrips();
+  M.open.forEach(o => { const p = LIVE[o.symbol]; o.price = p; o.pnl = p ? o.qty * p - o.cost : null; });
+  const mDone = M.trades.filter(t => t.pnl_usdt != null), mUnreal = M.open.reduce((s, o) => s + (o.pnl || 0), 0);
+  const mReal = M.pnl_usdt, mFee = mDone.reduce((s, t) => s + 0.001 * t.qty * (t.entry_price + t.exit_price), 0);
+  const d1Pnl = equity - cap, totPnl = d1Pnl + mReal + mUnreal, totRet = totPnl / cap * 100;
+  const nOpen = positions.length + M.open.length, openPnl = D.unrealized + delta + mUnreal;
+  const d1Wins = m ? Math.round(m.trades * m.win_rate_pct / 100) : 0, d1N = m ? m.trades : 0;
+  const nDone = d1N + mDone.length, wins = d1Wins + mDone.filter(t => t.pnl_usdt > 0).length;
+  const split = (a, b) => `D1 ${a} · lướt sóng/tay ${b}`;
+  $("kpis").innerHTML = [
+    kpi("Vốn (USDT)", fmt(cap + totPnl), `ban đầu ${fmt(cap, 0)}` + (usdt != null ? `<br>số dư testnet ${fmt(usdt)}` : "")),
+    kpi("Lãi / lỗ", pct(totRet), `${sgn(totPnl)} USDT<br><span class="mut">${split(sgn(d1Pnl), sgn(mReal + mUnreal))}</span>` +
+        (mDone.length ? `<br><span class="mut">lướt sóng/tay nếu phí thật 0,1%: ${sgn(mReal - mFee)}</span>` : ""), cls(totRet)),
+    kpi("Đang mở", nOpen, nOpen ? `${sgn(openPnl)} USDT<br><span class="mut">${split(positions.length, M.open.length)}</span>` : "lệnh"),
+    kpi("Đã đóng", nDone, nDone ? `thắng ${fmt(wins / nDone * 100, 0)}% · ${sgn(D.realized + mReal)}<br><span class="mut">${split(d1N, mDone.length)}</span>` : "lệnh"),
+  ].join("");
+  startFeed(D, M);
+
+
+  $("pos-card").hidden = !positions.length;
+  $("positions").innerHTML = table([
+    { h: "Coin", f: r => `<b>${coin(r.symbol)}</b>` },
+    { h: "Vào", r: 1, f: r => px(r.entry_price) },
+    { h: "Hiện tại", r: 1, f: r => `<span class="${FLASH[r.symbol] || ""}">${px(r.price)}</span>` },
+    { h: "Lãi / lỗ", r: 1, f: r => `${pct(r.pnl_pct)} <span class="mut">${sgn(r.pnl_usdt)}</span>`, c: r => cls(r.pnl_pct) },
+    { h: "Stop", r: 1, f: r => `${px(r.stop)} <span class="mut">${pct(r.risk_pct, 1)}</span>` },
+    { h: "Ngày", r: 1, f: r => r.days },
+  ], paged("positions", positions, 10, "lệnh"));
+
+  const rows = paged("radar", radar, 10, "coin"), maxGap = Math.max(1, ...rows.map(r => Math.min(r.gap, 50)));
+  $("radar").innerHTML = table([
+    { h: "Coin", f: r => `<b>${coin(r.symbol)}</b>` },
+    { h: "Giá", r: 1, f: r => `<span class="${FLASH[r.symbol] || ""}">${px(r.price)}</span>` },
+    { h: "Mốc cần vượt", r: 1, f: r => `${px(r.need)} <span class="mut">${r.target}</span>` },
+    { h: "Còn cách", f: r => r.over ? `<b class="pos">đã vượt</b>` :
+        `<span class="bar" style="width:${Math.max(2, Math.min(r.gap, 50) / maxGap * 60)}px"></span>+${fmt(r.gap, 1)}%` },
+  ], rows) || `<p class="empty">Chưa có dữ liệu — đợi bot chạy.</p>`;
+
+  const close = new Date(); close.setUTCHours(24, 0, 0, 0);
+  const left = Math.max(0, close - Date.now()), h = Math.floor(left / 36e5), mi = Math.floor(left % 36e5 / 6e4);
+  $("live").innerHTML = `<span class="dot ${LIVE_OK ? "on" : ""}"></span>${LIVE_OK ? "giá trực tiếp" : "đang kết nối giá…"} · chốt nến sau ${h}g${String(mi).padStart(2, "0")}`;
+  renderFills();
+  renderManual(M, mUnreal);
+}
+
+function render(D) {
+  DATA = D;
+  const acc = D.account || {};
+  $("state").textContent = `${D.mode === "testnet" ? "Testnet" : D.mode === "mô phỏng" ? "Mô phỏng" : D.mode}` +
+    ` · ${D.paused ? "tạm dừng" : "đang chạy"} · bot chạy lúc ${vnTime(D.updated)}`;
+  const warns = [];
+  if (D.error) warns.push(`Lần chạy gần nhất bị lỗi: ${esc(D.error)}`);
+  if (acc.ok === false) warns.push("Không kết nối được sàn ở lần chạy gần nhất.");
+  if ((Date.now() - new Date(D.updated)) / 36e5 > 30) warns.push("Bot hơn 30 giờ chưa chạy — kiểm tra máy hoặc lịch chạy.");
+  $("alert").innerHTML = warns.map(w => `<div class="alert">${w}</div>`).join("");
+
+  chart(D.equity_curve, D.initial_capital);
+
+  const sh = D.shadow || [];
+  $("sh-card").hidden = !sh.length;
+  $("sh-meta").textContent = `tính từ ${vnDate(D.start)} · cần ${D.shadow_min_trades || 30} lệnh mới so được`;
+  const opt = (v, f) => v == null ? "—" : f(v);
+  $("shadow").innerHTML = table([
+    { h: "Biến thể", f: r => r.champion ? `<b>${esc(r.name)}</b>` : esc(r.name) },
+    { h: "Lệnh", r: 1, f: r => r.trades + (r.open ? ` <span class="mut">+${r.open} mở</span>` : "") },
+    { h: "Lãi TB", r: 1, f: r => opt(r.expectancy_pct, v => pct(v)), c: r => cls(r.expectancy_pct || 0) },
+    { h: "Tổng", r: 1, f: r => pct(r.return_pct), c: r => cls(r.return_pct) },
+    { h: "Quá khứ*", r: 1, f: r => `<span class="mut">${opt(r.ref_expectancy_pct, v => pct(v))}</span>` },
+    { h: "Đánh giá", f: r => `<span class="${/TỐT HƠN/.test(r.verdict) ? "pos" : "mut"}">${esc(r.verdict)}</span>` },
+  ], sh) + `<p class="mut" style="margin:6px 0 0">* Lãi TB/lệnh khi chạy trên dữ liệu 22/10/2024 – nay, chỉ để tham khảo. Bot chỉ đổi chiến lược khi một biến thể thắng rõ rệt (t ≥ 2) trên dữ liệu thật từ ngày bắt đầu.</p>`;
+
+  renderTrades(D);
+
+  const m = D.metrics, B = D.backtest;
+  $("about").innerHTML = `Chiến lược: ${esc(D.variant)} — ${esc(D.rule)}. ${D.symbols} coin, ${fmt(D.initial_capital, 0)} USDT ảo chia đều. ` +
+    `Bắt đầu ${vnDate(D.start)}. Bot chạy 07:05 mỗi ngày.` + (acc.usdt != null ? ` Số dư testnet: ${fmt(acc.usdt)} USDT.` : "");
+  const live = m ? [m.trades, fmt(m.win_rate_pct, 1) + "%", pct(m.expectancy_pct), fmt(m.profit_factor), fmt(m.max_drawdown_pct, 1) + "%"] : ["0", "—", "—", "—", "—"];
+  const rows = [["Số lệnh", B.trades], ["Tỷ lệ thắng", fmt(B.win_rate_pct, 1) + "%"], ["Lãi TB / lệnh", pct(B.expectancy_pct)],
+                ["Profit factor", fmt(B.profit_factor)], ["Max drawdown", fmt(B.max_drawdown_pct, 1) + "%"]];
+  $("compare").innerHTML = `<table><thead><tr><th></th><th class="r">Backtest</th><th class="r">Bot</th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr><td>${r[0]}</td><td class="r">${r[1]}</td><td class="r">${live[i]}</td></tr>`).join("") + "</tbody></table>";
+  $("log").textContent = D.log.join("\n") || "—";
+
+  renderLive();
+}
+
+function renderTrades(D) {
+  const trades = [...D.trades].sort((a, b) => String(b.exit_time).localeCompare(String(a.exit_time)));
+  $("tr-card").hidden = !trades.length;
+  $("tr-h").textContent = `Lệnh gần đây (${trades.length})`;
+  $("trades").innerHTML = table([
+    { h: "Coin", f: r => `<b>${coin(r.symbol)}</b>` },
+    { h: "Vào → ra", f: r => `${vnDate(r.entry_time)} → ${vnDate(r.exit_time)}` },
+    { h: "Lãi / lỗ", r: 1, f: r => `${pct(r.return_pct)} <span class="mut">${sgn(r.pnl_usdt)}</span>`, c: r => cls(r.return_pct) },
+    { h: "Lý do", f: r => `<span class="mut">${esc(r.reason)}</span>` },
+  ], paged("trades", trades, 10, "lệnh"));
+}
+
+function renderFills() {
+  const all = allFills(), inFile = new Set((FILLS?.fills || []).map(fkey));
+  const rows = paged("fills", all, 10, "lệnh khớp");
+  $("fl-card").hidden = !all.length;
+  $("fl-meta").innerHTML = `<span class="dot ${NT_OK ? "on" : ""}"></span>${NT_OK ? "lệnh trực tiếp" : "đang kết nối lệnh…"}`;
+  $("fills").innerHTML = table([
+    { h: "Giờ", f: r => `${vnClock(r.ms)} <span class="mut">${vnDate(r.time)}</span>` },
+    { h: "Lệnh", f: r => r.side === "BUY" ? `<b class="pos">Mua</b>` : `<b class="neg">Bán</b>` },
+    { h: "Coin", f: r => `<b>${coin(r.symbol)}</b>` },
+    { h: "Khối lượng", r: 1, f: r => px(r.qty) },
+    { h: "Giá", r: 1, f: r => px(r.price) },
+    { h: "Giá trị", r: 1, f: r => fmt(r.quote) },
+    { h: "Nguồn", f: r => srcTag(r.source) + (inFile.has(fkey(r)) ? "" : ` <span class="tag n">mới</span>`) },
+  ], rows, r => Date.now() - (NEW[fkey(r)] || 0) < 4000 ? "new" : "");
+}
+
+function liveTrips() {
+  const R = FILLS?.round_trips || { trades: [], open: [], pnl_usdt: 0, count: 0 };
+  const inFile = new Set((FILLS?.fills || []).map(fkey));
+  const lots = {};
+  R.open.forEach(o => (lots[o.symbol] ||= []).push({ qty: o.qty, cost: o.cost, price: o.entry_price, time: o.entry_time, source: o.source }));
+  const orders = new Map();
+  RT.filter(f => !inFile.has(fkey(f)) && f.source !== "d1")
+    .sort((a, b) => a.ms - b.ms || a.trade_id - b.trade_id)
+    .forEach(f => {
+      const k = f.symbol + ":" + f.order_id;
+      let o = orders.get(k);
+      if (!o) orders.set(k, o = { symbol: f.symbol, source: f.source, side: f.side, time: f.time, qty: 0, quote: 0, fee_base: 0, fee_usdt: 0 });
+      o.qty += f.qty; o.quote += f.quote;
+      if (f.fee_asset === f.symbol.replace(/USDT$/, "")) o.fee_base += f.fee || 0;
+      else if (f.fee_asset === "USDT") o.fee_usdt += f.fee || 0;
+    });
+  const trades = [];
+  let pnl = 0, count = 0;
+  for (const o of orders.values()) {
+    const sym = o.symbol, price = o.quote / o.qty;
+    if (o.side === "BUY") {
+      (lots[sym] ||= []).push({ qty: o.qty - o.fee_base, cost: o.quote + o.fee_usdt, price, time: o.time, source: o.source });
+      continue;
+    }
+    const eps = o.qty * 1e-9, net = (o.quote - o.fee_usdt - o.fee_base * price) / o.qty, q = lots[sym] || [];
+    let left = o.qty, mq = 0, mcost = 0, mgross = 0, first = null;
+    while (left > eps && q.length) {
+      const lot = q[0], take = Math.min(left, lot.qty), unit = lot.cost / lot.qty;
+      mq += take; mcost += take * unit; mgross += take * lot.price; first ||= lot.time;
+      lot.qty -= take; lot.cost -= take * unit; left -= take;
+      if (lot.qty <= eps) q.shift();
+    }
+    const base = { symbol: sym, source: o.source, exit_time: o.time, exit_price: price };
+    if (mq > eps) {
+      const p = mq * net - mcost;
+      trades.push({ ...base, entry_time: first, qty: mq, entry_price: mgross / mq, pnl_usdt: p, return_pct: p / mcost * 100 });
+      pnl += p; count++;
+    }
+    if (left > eps) trades.push({ ...base, entry_time: null, qty: left, entry_price: null, pnl_usdt: null, return_pct: null });
+  }
+  const open = Object.entries(lots).flatMap(([s, q]) => q.map(l => ({ symbol: s, source: l.source, qty: l.qty,
+    entry_price: l.price, cost: l.cost, entry_time: l.time })));
+  return { trades: [...trades.reverse(), ...R.trades], open, pnl_usdt: R.pnl_usdt + pnl, count: R.count + count };
+}
+
+function renderManual(R, live) {
+  const open = [...R.open].sort((a, b) => (a.pnl ?? 0) - (b.pnl ?? 0));
+  const all = [...R.trades].sort((a, b) => String(b.exit_time).localeCompare(String(a.exit_time)));
+  const trades = paged("manual", all, 10, "cặp đã đóng");
+  $("mt-card").hidden = !open.length && !all.length;
+  if ($("mt-card").hidden) return;
+  $("mt-meta").textContent = `đã chốt ${sgn(R.pnl_usdt)} USDT · ${R.count} cặp` + (open.length ? ` · đang mở ${sgn(live)}` : "");
+  $("manual").innerHTML = (open.length ? table([
+    { h: "Đang mở", f: r => `<b>${coin(r.symbol)}</b> ${srcTag(r.source)}` },
+    { h: "Khối lượng", r: 1, f: r => px(r.qty) },
+    { h: "Giá vào", r: 1, f: r => px(r.entry_price) },
+    { h: "Hiện tại", r: 1, f: r => r.price ? `<span class="${FLASH[r.symbol] || ""}">${px(r.price)}</span>` : "—" },
+    { h: "Lãi / lỗ", r: 1, f: r => r.pnl == null ? "—" : sgn(r.pnl), c: r => cls(r.pnl || 0) },
+  ], open) : "") + table([
+    { h: "Coin", f: r => `<b>${coin(r.symbol)}</b> ${srcTag(r.source)}` },
+    { h: "Vào → ra", f: r => r.entry_time
+        ? `${vnClock(+new Date(r.entry_time))} → ${vnClock(+new Date(r.exit_time))} <span class="mut">${vnDate(r.exit_time)}</span>`
+        : `<span class="mut">bán coin có sẵn · ${vnDate(r.exit_time)}</span>` },
+    { h: "Giá vào → ra", r: 1, f: r => r.entry_price ? `${px(r.entry_price)} → ${px(r.exit_price)}` : px(r.exit_price) },
+    { h: "Lãi / lỗ", r: 1, f: r => r.pnl_usdt == null ? "—" : `${pct(r.return_pct)} <span class="mut">${sgn(r.pnl_usdt)}</span>`,
+      c: r => cls(r.pnl_usdt || 0) },
+  ], trades);
+}
+
+function validFill(f) {
+  return !!f && typeof f.symbol === "string" && /^[A-Z0-9]{2,20}$/.test(f.symbol) && Number.isFinite(f.trade_id) &&
+    Number.isFinite(f.ms) && f.ms < Date.now() + 60000 && (f.side === "BUY" || f.side === "SELL") &&
+    [f.qty, f.price, f.quote].every(Number.isFinite);
+}
+
+function startNtfy(topic, sinceIso) {
+  if (!topic || topic === NT_TOPIC) return;
+  NT_TOPIC = topic;
+  if (NT) NT.close();
+  const since = Math.floor(new Date(sinceIso) / 1000);
+  NT = new EventSource(`https://ntfy.sh/${encodeURIComponent(topic)}/sse?since=${since > 0 ? since : "1h"}`);
+  NT.onopen = () => { NT_OK = true; DIRTY = true; };
+  NT.onerror = () => { NT_OK = false; DIRTY = true; };
+  NT.onmessage = ev => {
+    let m;
+    try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
+    if (!m || m.v !== 1 || m.kind !== "fill" || !validFill(m.fill)) return;
+    const f = m.fill, k = fkey(f);
+    if (f.ms <= fillsUpdated() - 5000 || RT.some(x => fkey(x) === k)) return;
+    RT.push(f);
+    NEW[k] = Date.now();
+    setTimeout(() => { DIRTY = true; }, 4100);
+    if (Number.isFinite(m.usdt) && (!RT_USDT || f.ms >= RT_USDT.ms)) RT_USDT = { v: m.usdt, ms: f.ms };
+    clearTimeout(REFETCH);
+    REFETCH = setTimeout(load, 90000);
+    DIRTY = true;
+  };
+}
+
+async function loadFills() {
+  try {
+    const r = await fetch("fills.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return;
+    FILLS = await r.json();
+    const inFile = new Set(FILLS.fills.map(fkey)), upd = fillsUpdated();
+    RT = RT.filter(f => !inFile.has(fkey(f)) && f.ms > upd - 5000);
+    startNtfy(FILLS.topic, FILLS.updated);
+    if (DATA) startFeed(DATA);
+    DIRTY = true;
+  } catch (e) {}
+}
+
+function onPrice(sym, p) {
+  if (!(p > 0)) return;
+  const old = LIVE[sym];
+  if (old !== undefined && p !== old) { FLASH[sym] = p > old ? "up" : "down"; setTimeout(() => { delete FLASH[sym]; DIRTY = true; }, 800); }
+  LIVE[sym] = p; LAST_TICK = Date.now(); LIVE_OK = true; DIRTY = true;
+}
+async function pollRest(syms) {
+  try {
+    const r = await fetch("https://data-api.binance.vision/api/v3/ticker/price?symbols=" + encodeURIComponent(JSON.stringify(syms)));
+    (await r.json()).forEach(x => onPrice(x.symbol, +x.price));
+  } catch (e) { LIVE_OK = false; DIRTY = true; }
+}
+function startFeed(D, M = liveTrips()) {
+  const syms = [...new Set([...(D.radar || []).map(r => r.symbol), ...D.positions.map(p => p.symbol),
+                            ...M.open.map(o => o.symbol)])].sort(), key = syms.join(",");
+  if (!syms.length || key === WS_KEY) return;
+  WS_KEY = key;
+  if (WS) { WS.onclose = null; WS.close(); }
+  clearInterval(POLL); POLL = null;
+  pollRest(syms);
+  const streams = syms.map(s => s.toLowerCase() + "@miniTicker").join("/");
+  const connect = () => {
+    WS = new WebSocket("wss://data-stream.binance.vision/stream?streams=" + streams);
+    WS.onmessage = ev => { const d = JSON.parse(ev.data).data; if (d) onPrice(d.s, +d.c); };
+    WS.onopen = () => { clearInterval(POLL); POLL = null; };
+    WS.onclose = () => { LIVE_OK = false; DIRTY = true; if (!POLL) POLL = setInterval(() => pollRest(syms), 10000); setTimeout(connect, 5000); };
+  };
+  connect();
+}
+setInterval(() => { if (DIRTY) { DIRTY = false; renderLive(); } }, 1000);
+setInterval(() => { DIRTY = true; }, 30000);
+document.addEventListener("click", e => {
+  const b = e.target.closest(".pager button[data-p]");
+  if (!b || b.disabled) return;
+  const id = b.parentElement.id.replace(/-pager$/, "");
+  PAGES[id] = (PAGES[id] || 0) + +b.dataset.p;
+  if (id === "trades") renderTrades(DATA); else renderLive();
+});
+
+async function load() {
+  try { render(await (await fetch("data.json?t=" + Date.now(), { cache: "no-store" })).json()); }
+  catch (e) { $("alert").innerHTML = `<div class="alert">Không tải được dữ liệu bot: ${esc(e.message)}</div>`; }
+  await loadFills();
+}
+load();
+setInterval(load, 5 * 60 * 1000);
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => DATA && chart(DATA.equity_curve, DATA.initial_capital), 200); });
+</script>
+</body>
+</html>
