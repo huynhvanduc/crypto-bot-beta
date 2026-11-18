@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T19:51:47Z",
+ "updated": "2026-11-18T19:58:02Z",
  "fee_rt_pct": 0.2,
  "stats": {
   "trades": 0
@@ -13,6 +13,15 @@
    "time": "2026-11-18T19:51:47Z",
    "reason": "[Claude] Sức mạnh tương đối: INJ nhích 7.004→7.032 khi BTC tạo đáy thấp hơn và 27/29 coin giảm 1h; ATR5 0,54% đủ biến động. Stop dưới đáy 7.004 | kế hoạch: TP +0.8% / SL -0.45% / tối đa 30′",
    "market_entry": 7.033
+  },
+  {
+   "symbol": "AAVEUSDT",
+   "entry": 107.77999999999999,
+   "usdt": 99.91,
+   "stop": 104.50189775529849,
+   "time": "2026-11-18T19:58:02Z",
+   "reason": "[Claude] Hồi sau 1h bị bán: BTC tạo đáy 62.570 rồi đáy cao dần; AAVE chạm 107,37 gần đáy 24h rồi giữ >107,7; ATR5 0,40%. Stop dưới đáy 107,37 | kế hoạch: TP +0.8% / SL -0.44% / tối đa 30′",
+   "market_entry": 107.78
   }
  ],
  "closed": []
