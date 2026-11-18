@@ -4,7 +4,7 @@
   buy SYM USDT TP% SL% "lý do"           — mua, ghi kế hoạch thoát
   watch                                  — vòng theo dõi: thoát khi chạm TP/SL (giá thị trường thật) hoặc 30 phút
   status | sell SYM
-Chạy: .venv\Scripts\python claude_trade.py <lệnh>  (từ thư mục gốc dự án).
+Chạy: .venv/Scripts/python claude_trade.py <lệnh>  (từ thư mục gốc dự án).
 """
 import json
 import sys
