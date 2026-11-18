@@ -87,6 +87,16 @@ cho cả 6 biến thể lỗ ≈ −0,3 %/lệnh sau phí và trượt giá.
 
 Tên topic ntfy là công khai (nằm trong `docs/fills.json`): trang chỉ tin tin ntfy mới hơn `fills.json`, tin giả bị thay khi `fills.json` cập nhật.
 
+## Claude tự giao dịch (testnet)
+
+Task Scheduler `CryptoBotClaude` chạy `claude_tu_dong.cmd` mỗi 30 phút. File này gọi Claude Code (`claude -p`) với prompt trong `claude_tu_dong.md`. Claude tự chạy `claude_trade.py status / journal / scan`, có thể tìm tin tức trên web, rồi quyết định mua, bán sớm hoặc đứng ngoài, kèm lý do. Lệnh của Claude có mã bắt đầu bằng `ai-` và hiện nhãn "Claude" trên dashboard.
+
+- Trong lúc chạy theo lịch, Claude chỉ được dùng `claude_trade.py` và WebSearch (`--permission-mode dontAsk`).
+- Giới hạn cứng nằm trong `bot/ai_limits.py`, khai báo ở `LIMITS` trong `claude_trade.py`: tối đa 200 USDT mỗi lệnh, 5 lệnh mở, và ngừng mua khi lỗ đã chốt trong ngày từ 150 USDT trở lên (tính theo giờ VN, sau phí).
+- `claude_trade.py watch forever` tự bán khi chạm TP/SL hoặc khi đã giữ 30 phút. Mỗi lần chạy, `claude_tu_dong.cmd` đều bật tiến trình này; nếu đã có một bản đang chạy thì bản mới tự thoát.
+- Nhật ký: `live/claude_auto.log` ghi quyết định của Claude, `live/claude_watch.log` ghi các lần bán tự động.
+- Tạm dừng: `schtasks /change /tn CryptoBotClaude /disable`. Bật lại: thay `/disable` bằng `/enable`.
+
 ## Chạy trên điện thoại Android (Termux)
 
 Không cần bật máy tính: điện thoại cắm sạc + wifi chạy cả bot D1 (07:05 giờ VN, chạy bù nếu lỡ) lẫn watcher.

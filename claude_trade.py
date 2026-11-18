@@ -2,9 +2,11 @@
 
   scan                                   — quét bối cảnh 29 coin
   buy SYM USDT TP% SL% "lý do"           — mua, ghi kế hoạch thoát
-  watch                                  — vòng theo dõi: thoát khi chạm TP/SL (giá thị trường thật) hoặc 30 phút
-  status | sell SYM
+  watch [forever]                        — vòng theo dõi: thoát khi chạm TP/SL (giá thị trường thật) hoặc 30 phút;
+                                           forever = chạy mãi, chỉ một bản (bản thứ hai tự thoát)
+  status | sell SYM ["lý do"] | journal [N]  — N lệnh đã đóng gần nhất
 Chạy: .venv/Scripts/python claude_trade.py <lệnh>  (từ thư mục gốc dự án).
+Giới hạn cứng (bot/ai_limits.py): LIMITS bên dưới — buy bị từ chối nếu vượt.
 """
 import json
 import sys
@@ -14,6 +16,7 @@ from pathlib import Path
 import requests
 
 import bot.manual as manual
+from bot.ai_limits import Limits, check, day_loss, today_vn
 from bot.data import PUBLIC_API
 from bot.exchange import BinanceSpot
 from bot.filelock import file_lock
@@ -27,7 +30,8 @@ manual.TAG = "ai"
 STATE, JOURNAL = Path("live/claude.json"), Path("live/claude_journal.csv")
 PLANS = Path("live/claude_plans.json")
 MAX_MIN = 30
-SYMS = [s for s in SYMBOLS if s != "EOSUSDT"]
+LIMITS = Limits(max_usdt=200, max_open=5, max_day_loss=150)
+SYMS =[s for s in SYMBOLS if s != "EOSUSDT"]
 
 
 def trader():
@@ -84,6 +88,10 @@ def scan():
 def buy(sym, usdt, tp, sl, reason):
     sym = sym.upper() + ("" if sym.upper().endswith("USDT") else "USDT")
     t = trader()
+    refuse = check(LIMITS, len(t.pos), float(usdt), day_loss(JOURNAL, REAL_FEE_RT_PCT, today_vn()))
+    if refuse:
+        print(refuse)
+        return
     print(t.buy(sym, float(usdt), f"[Claude] {reason} | kế hoạch: TP +{tp}% / SL -{sl}% / tối đa {MAX_MIN}′"))
     if sym in t.pos:
         p = plans()
@@ -112,13 +120,55 @@ def status():
               f"sau phí {(px / e - 1) * 100 - REAL_FEE_RT_PCT:+.2f}%) | TP {pl.get('tp', 0):.6g} SL {pl.get('sl', 0):.6g}")
     if not t.pos:
         print("Không có lệnh mở.")
+    loss = day_loss(JOURNAL, REAL_FEE_RT_PCT, today_vn())
+    print(f"Giới hạn: tối đa {LIMITS.max_usdt:g} USDT/lệnh · {len(t.pos)}/{LIMITS.max_open} lệnh mở · "
+          f"lỗ đã chốt hôm nay {loss:.2f}/{LIMITS.max_day_loss:g} USDT (chạm mức thì không mua được nữa)")
 
 
-def watch():
-    print(f"{now_iso()} bắt đầu theo dõi", flush=True)
+def journal(n="20"):
+    """In n lệnh đã đóng gần nhất để Claude rút kinh nghiệm."""
+    if not JOURNAL.exists():
+        print("Chưa có lệnh nào đóng.")
+        return
+    import csv
+    with JOURNAL.open(encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))[-int(n):]
+    for r in rows:
+        net = float(r["ret_market_pct"]) - REAL_FEE_RT_PCT
+        print(f"{r['exit_time']} {r['symbol']:<9} {float(r['usdt']):>6.0f} USDT giữ {float(r['minutes']):>5.1f}′ "
+              f"sau phí {net:+.2f}% ({r['exit_how']}) cao/thấp {r.get('mfe_pct') or '?'}/{r.get('mae_pct') or '?'} | {r['reason']}")
+
+
+def single_instance(path: Path):
+    """Giữ khóa không chặn trên file; None nếu một tiến trình khác đang giữ."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    f = open(path, "a+")
+    try:
+        if sys.platform == "win32":
+            import msvcrt
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        f.close()
+        return None
+    return f
+
+
+def watch(mode=""):
+    forever = mode == "forever"
+    lock = single_instance(Path("live/claude_watch.lock")) if forever else None
+    if forever and lock is None:
+        print("Đã có một bản watch forever đang chạy — thoát.", flush=True)
+        return
+    print(f"{now_iso()} bắt đầu theo dõi" + (" (chạy mãi)" if forever else ""), flush=True)
     while True:
         p = plans()
         if not p:
+            if forever:
+                time.sleep(15)
+                continue
             print(f"{now_iso()} hết lệnh mở — dừng theo dõi", flush=True)
             return
         for s, pl in list(p.items()):
@@ -129,7 +179,10 @@ def watch():
             held = (time.time() - pl["ts"]) / 60
             why = "TP" if px >= pl["tp"] else "SL" if px <= pl["sl"] else "hết 30′" if held >= MAX_MIN else None
             if why:
-                sell(s, why)
+                try:
+                    sell(s, why)
+                except Exception as e:  # lỗi mạng/sàn: thử lại ở vòng sau thay vì chết cả vòng theo dõi
+                    print(f"{now_iso()} bán {s} lỗi: {type(e).__name__}: {e}", flush=True)
             elif 15 <= held < 15.25:
                 print(f"{now_iso()} {s} mốc 15′: giá {px:.6g}", flush=True)
         time.sleep(15)
@@ -137,4 +190,5 @@ def watch():
 
 if __name__ == "__main__":
     cmd, *a = sys.argv[1:]
-    {"scan": scan, "buy": lambda: buy(*a), "sell": lambda: sell(*a), "status": status, "watch": watch}[cmd]()
+    {"scan": scan, "buy": lambda: buy(*a), "sell": lambda: sell(*a), "status": status, "watch": lambda: watch(*a),
+     "journal": lambda: journal(*a)}[cmd]()
