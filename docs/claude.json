@@ -1,25 +1,34 @@
 {
- "updated": "2026-11-18T21:13:56Z",
+ "updated": "2026-11-18T21:14:15Z",
  "fee_rt_pct": 0.2,
  "stats": {
-  "trades": 3,
-  "win_rate_pct": 33.3,
-  "avg_net_pct": -0.1393,
-  "sum_net_pct": -0.418,
-  "avg_minutes": 26.9
+  "trades": 4,
+  "win_rate_pct": 25.0,
+  "avg_net_pct": -0.1631,
+  "sum_net_pct": -0.6523,
+  "avg_minutes": 20.2
  },
- "open": [
+ "open": [],
+ "closed": [
   {
    "symbol": "BTCUSDT",
-   "entry": 62470.63999999999,
+   "entry_time": "2026-11-18T21:13:55Z",
+   "exit_time": "2026-11-18T21:14:14Z",
+   "minutes": 0.3,
    "usdt": 19.99,
-   "stop": 61417.89118012949,
-   "time": "2026-11-18T21:13:55Z",
    "reason": "[Claude] kiểm tra OCO (lệnh thử, bán ngay) | TP +2% / SL -1%",
-   "market_entry": 62466.01
-  }
- ],
- "closed": [
+   "exit_how": "tay",
+   "ret_market_pct": -0.0343,
+   "net_pct": -0.2343,
+   "mfe_pct": 0.0064,
+   "mae_pct": -0.0411,
+   "e_rsi_5m": 36.54675129451249,
+   "e_rsi_1h": 30.03669979720307,
+   "e_vol_ratio_5m": 0.5156972311340182,
+   "e_ret_1h_pct": -0.3950646785190859,
+   "e_above_ema200_1h": false,
+   "e_btc_above_ema200_1h": false
+  },
   {
    "symbol": "AAVEUSDT",
    "entry_time": "2026-11-18T19:58:02Z",
