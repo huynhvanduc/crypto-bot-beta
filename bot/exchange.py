@@ -141,6 +141,18 @@ class BinanceSpot:
         return self._order(tag, symbol=symbol, side="SELL", type="MARKET",
                            quantity=round_step(qty, self.filters(symbol)["step"]), newOrderRespType="FULL")
 
+    def oco_sell(self, symbol: str, qty: float, take_profit: float, stop: float, tag: str | None = None) -> dict:
+        f = self.filters(symbol)
+        return self._request("POST", "/api/v3/orderList/oco", {
+            "symbol": symbol, "side": "SELL", "quantity": round_step(qty, f["step"]),
+            "aboveType": "LIMIT_MAKER", "abovePrice": round_step(take_profit, f["tick"]),
+            "belowType": "STOP_LOSS", "belowStopPrice": round_step(stop, f["tick"]),
+            "listClientOrderId": client_id(tag), "aboveClientOrderId": client_id(tag),
+            "belowClientOrderId": client_id(tag)}, signed=True)
+
+    def order_list(self, list_id: int) -> dict:
+        return self._request("GET", "/api/v3/orderList", {"orderListId": list_id}, signed=True)
+
     def stop_loss_sell(self, symbol: str, qty: float, stop_price: float, tag: str | None = None) -> dict:
         f = self.filters(symbol)
         return self._order(tag, symbol=symbol, side="SELL", type="STOP_LOSS",

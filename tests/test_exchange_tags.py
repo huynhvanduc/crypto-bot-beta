@@ -40,3 +40,14 @@ def test_my_trades_request():
     ex.my_trades("BTCUSDT", from_id=5)
     assert ex.calls[0] == ("GET", "/api/v3/myTrades", {"symbol": "BTCUSDT", "fromId": 5, "limit": 1000})
 
+
+
+def test_oco_sell_tags_both_legs():
+    ex = Rec()
+    ex.oco_sell("BTCUSDT", 0.0012345, 61000.123, 59000.456, tag="ai")
+    m, path, p = ex.calls[0]
+    assert (m, path) == ("POST", "/api/v3/orderList/oco")
+    assert p["side"] == "SELL" and p["quantity"] == "0.00123"
+    assert p["aboveType"] == "LIMIT_MAKER" and p["abovePrice"] == "61000.12"
+    assert p["belowType"] == "STOP_LOSS" and p["belowStopPrice"] == "59000.45"
+    assert all(p[k].startswith("ai-") for k in ("listClientOrderId", "aboveClientOrderId", "belowClientOrderId"))

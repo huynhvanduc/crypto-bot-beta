@@ -14,16 +14,15 @@ python -m venv .venv
 
 Tạo key ở https://testnet.binance.vision (đăng nhập GitHub, chọn Generate HMAC_SHA256 Key). Chép `.env.example` thành `.env` rồi điền key, `NTFY_TOPIC` và `TELEGRAM_BOT_TOKEN` (nếu dùng Telegram).
 
-## Claude tự giao dịch
+## Claude tự giao dịch (cloud)
 
-Task Scheduler `CryptoBotClaude` chạy `claude_tu_dong.cmd` mỗi 30 phút. File này gọi Claude Code (`claude -p`) với prompt trong `claude_tu_dong.md`. Mỗi lượt, Claude chạy `claude_trade.py status / journal / scan` và có thể tìm tin tức trên web. Sau đó nó mua, bán sớm hoặc đứng ngoài, và lệnh nào cũng ghi lý do. Lệnh của Claude có mã bắt đầu bằng `ai-` và hiện nhãn "Claude" trên dashboard.
+Routine Claude Code trên cloud của Anthropic chạy mỗi giờ bằng gói Claude của người dùng, theo prompt `claude_tu_dong.md`, không cần bật máy tính. Mỗi lượt, Claude chạy `claude_trade.py status / journal / scan` và có thể tìm tin tức trên web. Sau đó nó mua, bán sớm hoặc đứng ngoài, và lệnh nào cũng ghi lý do. Lệnh của Claude có mã bắt đầu bằng `ai-` và hiện nhãn "Claude" trên dashboard.
 
-- Trong lúc chạy theo lịch, Claude chỉ được dùng `claude_trade.py` và WebSearch (`--permission-mode dontAsk`).
+- Mua xong, `claude_trade.py` đặt ngay lệnh OCO (chốt lời + cắt lỗ) trên sàn. Lượt sau, lệnh `status` sẽ ghi nhận lệnh nào đã khớp chốt lời hoặc cắt lỗ.
+- Trạng thái lưu ở `ai/claude.json`, nhật ký ở `ai/claude_journal.csv`. Cả hai được commit và đẩy lên GitHub cùng `docs/claude.json`, để lượt chạy sau đọc được.
 - Giới hạn cứng nằm trong `bot/ai_limits.py`, khai báo ở `LIMITS` trong `claude_trade.py`: tối đa 200 USDT mỗi lệnh, 5 lệnh mở, và ngừng mua khi lỗ đã chốt trong ngày từ 150 USDT trở lên (tính theo giờ VN, sau phí).
-- `claude_trade.py watch forever` tự bán khi chạm TP/SL hoặc khi đã giữ 30 phút. Mỗi lần chạy, `claude_tu_dong.cmd` đều bật tiến trình này; nếu đã có một bản đang chạy thì bản mới tự thoát.
-- Nhật ký: `live/claude_auto.log` ghi quyết định của Claude, `live/claude_watch.log` ghi các lần bán tự động, `live/claude_journal.csv` lưu từng lệnh đã đóng.
-- Tạm dừng: `schtasks /change /tn CryptoBotClaude /disable`. Bật lại: thay `/disable` bằng `/enable`.
-- Lịch chạy không cần người ngồi trước máy, nên đăng nhập của Claude Code phải còn hạn. Hãy chạy `claude setup-token` để tạo token dài hạn.
+- Môi trường cloud cần biến `BINANCE_API_KEY`, `BINANCE_API_SECRET`, và phải cho phép mạng tới `testnet.binance.vision` và `data-api.binance.vision`.
+- Xem, tạm dừng hoặc chạy ngay routine ở https://claude.ai/code/routines, hoặc từ app Claude trên điện thoại.
 
 ## Lệnh tay qua Telegram
 
@@ -49,8 +48,8 @@ Tên topic ntfy là công khai vì nó nằm trong `docs/fills.json`. Vì vậy 
 
 | File | Vai trò |
 |---|---|
-| `claude_trade.py` | Lệnh của Claude: `scan`, `status`, `journal`, `buy`, `sell`, `watch [forever]` |
-| `claude_tu_dong.md` / `.cmd` | Prompt và file chạy theo lịch cho Claude |
+| `claude_trade.py` | Lệnh của Claude: `scan`, `status`, `journal`, `buy` (kèm OCO), `sell` |
+| `claude_tu_dong.md` | Prompt cho routine Claude trên cloud |
 | `bot/ai_limits.py` | Giới hạn cứng: USDT mỗi lệnh, số lệnh mở, lỗ trong ngày |
 | `bot/manual.py` | Mua/bán, trạng thái lệnh, ghi nhật ký (dùng chung cho Claude và Telegram) |
 | `bot/journal.py` | Bối cảnh thị trường (5m/15m/1h, BTC), thống kê, xuất JSON cho dashboard |
