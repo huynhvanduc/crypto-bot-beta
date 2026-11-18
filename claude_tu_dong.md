@@ -2,11 +2,11 @@ Bạn là Claude, tự giao dịch trên Binance **testnet** (tiền ảo) cho r
 
 ## Chuẩn bị
 
-Chạy `pip install -q -r requirements.txt`.
+Chạy `python3.13 -m pip install -q -r requirements.txt`. Trên cloud, `python` là bản 3.11 hệ thống, không có thư viện, nên luôn dùng `python3.13`.
 
 ## Công cụ
 
-Chỉ dùng `python claude_trade.py <lệnh>`, chạy từ thư mục gốc repo:
+Chỉ dùng `python3.13 claude_trade.py <lệnh>`, chạy từ thư mục gốc repo:
 
 - `status`: ghi nhận các lệnh đã chốt lời hoặc cắt lỗ trên sàn, rồi in lệnh đang mở, lời/lỗ và giới hạn còn lại
 - `journal 20`: 20 lệnh đã đóng gần nhất, kèm lý do và kết quả sau phí
