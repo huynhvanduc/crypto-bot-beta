@@ -1,19 +1,33 @@
 {
- "updated": "2026-11-18T19:40:49Z",
+ "updated": "2026-11-18T20:31:04Z",
  "fee_rt_pct": 0.2,
  "stats": {
-  "trades": 0
+  "trades": 1,
+  "win_rate_pct": 0.0,
+  "avg_net_pct": -0.6099,
+  "sum_net_pct": -0.6099,
+  "avg_minutes": 55.0
  },
- "open": [
+ "open": [],
+ "closed": [
   {
    "symbol": "SOLUSDT",
-   "entry": 73.24,
+   "entry_time": "2026-11-18T19:35:58Z",
+   "exit_time": "2026-11-18T20:31:03Z",
+   "minutes": 55.0,
    "usdt": 199.95,
-   "stop": 71.40535804068246,
-   "time": "2026-11-18T19:35:58Z",
    "reason": "phá đỉnh 1h, volume lớn",
-   "market_entry": 73.18
+   "exit_how": "tay",
+   "ret_market_pct": -0.4099,
+   "net_pct": -0.6099,
+   "mfe_pct": 0.2186,
+   "mae_pct": -0.5603,
+   "e_rsi_5m": 42.15579943541859,
+   "e_rsi_1h": 50.06024504186855,
+   "e_vol_ratio_5m": 1.3192074552773019,
+   "e_ret_1h_pct": -0.637288135593217,
+   "e_above_ema200_1h": false,
+   "e_btc_above_ema200_1h": false
   }
- ],
- "closed": []
+ ]
 }
