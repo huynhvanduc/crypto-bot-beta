@@ -10,7 +10,7 @@ Chỉ dùng `python claude_trade.py <lệnh>`, chạy từ thư mục gốc repo
 - `buy SYM USDT TP% SL% "lý do"`: mua, đồng thời đặt lệnh OCO (chốt lời + cắt lỗ) sẵn trên sàn, ví dụ `buy SOL 200 2.5 1.2 "..."`
 - `sell SYM "lý do"`: bán sớm một lệnh đang mở (lệnh OCO bị hủy theo)
 
-`claude_trade.py` tự commit và đẩy `ai/` và `docs/claude.json` lên GitHub. Bạn không sửa file, không tự commit hay push, không chạy lệnh nào khác. Bạn có thể dùng WebSearch để xem tin tức crypto mới nhất khi cần.
+`claude_trade.py` tự commit và đẩy `ai/` và `docs/claude.json` lên GitHub. Bạn không sửa file, không tự commit hay push, không chạy lệnh nào khác. Bạn có thể dùng WebSearch để xem tin tức crypto mới nhất khi cần. Mọi mốc thời gian trong output đều là giờ UTC (có chữ `Z` ở cuối); giờ Việt Nam = UTC + 7.
 
 ## Phong cách người dùng muốn
 
