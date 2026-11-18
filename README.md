@@ -67,4 +67,4 @@ Tên topic ntfy là công khai vì nó nằm trong `docs/fills.json`. Vì vậy 
   - Cài đặt: `curl -fsSLo install.sh https://raw.githubusercontent.com/huynhvanduc/crypto-bot-beta/main/android/install.sh && bash install.sh`
   - Điều khiển: `bash ~/crypto-bot-beta/android/bot.sh {status|stop|start}`
   - Chỉ chạy watcher ở MỘT nơi, máy tính hoặc điện thoại.
-- `app/` là app .NET MAUI viết bằng C#, chạy độc lập, có bản C# riêng của bot D1 và theo dõi lệnh khớp. Build bằng lệnh `dotnet publish app/CryptoBot.App -f net9.0-android -c Release`.
+- `app/` là app .NET MAUI viết bằng C# để theo dõi lệnh (của Claude, Telegram và app), lời/lỗ, và đặt lệnh tay: mua theo USDT, kèm lệnh cắt lỗ đặt sẵn trên sàn ở giá vào − 2×ATR khung 1h. Dữ liệu lấy từ dashboard trên GitHub Pages; app không có dịch vụ chạy nền. Muốn nhận thông báo khớp lệnh thì dùng app ntfy, đăng ký topic có trong `docs/fills.json`. Build bằng `dotnet publish app/CryptoBot.App -f net9.0-android -c Release`, test bằng `dotnet test app/CryptoBot.Tests`.

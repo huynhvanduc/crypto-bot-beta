@@ -26,7 +26,8 @@ Dữ liệu làm mới khi mở app, khi kéo xuống, và 15 giây một lần 
    - Đã chốt (`round_trips.pnl_usdt`).
    - Đang mở: số lệnh kèm tổng lời/lỗ tạm tính, tính bằng tổng của (khối lượng × giá hiện tại − vốn).
 2. **Mua:** chọn coin (29 coin, bỏ EOS), nhập số USDT (mặc định 100), bấm Mua.
-3. **Đang mở:** lấy từ `round_trips.open`. Mỗi dòng gồm coin, nhãn nguồn, giá vào, giá hiện tại và lời/lỗ (% và USDT). Dòng nào thuộc lệnh app đang giữ thì có nút **Bán**.
+3. **Lệnh của app:** các lệnh app đang giữ, lấy từ Preferences. Mỗi dòng gồm coin, giá vào, % lời/lỗ và nút **Bán**. Mục này tách riêng vì `fills.json` cập nhật chậm 1–2 phút, nên ngay sau khi mua lệnh chưa có trong bảng Đang mở.
+   **Đang mở:** lấy từ `round_trips.open`, gồm mọi nguồn (lệnh của app cũng hiện ở đây với nhãn "Tay"). Mỗi dòng gồm coin, nhãn nguồn, giá vào, giá hiện tại và lời/lỗ (% và USDT).
 4. **Claude:** lý do của các lệnh Claude đang mở, lấy từ `claude.json`.
 5. **Đã đóng:** 20 lệnh gần nhất, gồm coin, nhãn nguồn, giá vào → ra và lời/lỗ.
 6. **Mua/bán gần đây:** 20 lệnh khớp gần nhất, gồm giờ, Mua/Bán, coin, giá và số USDT.
