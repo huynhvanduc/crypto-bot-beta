@@ -34,6 +34,9 @@ class FakeEx:
     def get_order(self, symbol, order_id):
         return self.orders[order_id]
 
+    def price(self, symbol):
+        return 50500.0
+
 
 class FakeTg:
     def __init__(self):

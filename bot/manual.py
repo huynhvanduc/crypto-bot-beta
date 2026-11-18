@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -9,6 +10,7 @@ import requests
 from .data import PUBLIC_API
 from .exchange import BinanceError, fill_summary
 from .indicators import atr, ema
+from .journal import REAL_FEE_RT_PCT, write_row
 from .live import now_iso
 
 TAG = "tg"
@@ -38,25 +40,38 @@ def recovery() -> tuple[bool, str]:
 
 
 class ManualTrader:
-    def __init__(self, ex, path=Path("live/manual.json"), atr_fn=hourly_atr):
+    def __init__(self, ex, path=Path("live/manual.json"), atr_fn=hourly_atr, journal=None,
+                 context_fn=None, excursion_fn=None):
         if not ex.is_testnet:
             raise RuntimeError("Chỉ giao dịch trên testnet")
         self.ex, self.path, self.atr_fn = ex, Path(path), atr_fn
+        self.journal = Path(journal) if journal else self.path.with_name("manual_journal.csv")
+        self.context_fn, self.excursion_fn = context_fn, excursion_fn
         self.pos = json.loads(self.path.read_text(encoding="utf-8")) if self.path.exists() else {}
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(self.pos, ensure_ascii=False, indent=1), encoding="utf-8")
 
-    def buy(self, symbol: str, usdt: float) -> str:
+    def _context(self, symbol: str) -> dict:
+        if self.context_fn is None:
+            return {}
+        try:
+            return self.context_fn(symbol)
+        except Exception as e:
+            return {"error": f"{type(e).__name__}: {e}"}
+
+    def buy(self, symbol: str, usdt: float, reason: str = "") -> str:
         if symbol in self.pos:
             return f"Đã có lệnh {symbol} đang mở — không mua thêm."
+        ctx = self._context(symbol)
         base = self.ex.filters(symbol)["base"]
         order = self.ex.market_buy_quote(symbol, usdt, tag=TAG)
         qty, avg, _ = fill_summary(order, base)
         stop = avg - STOP_ATR * self.atr_fn(symbol)
         p = {"qty": qty, "entry": avg, "cost": float(order["cummulativeQuoteQty"]), "stop": stop,
-             "stop_order_id": None, "time": now_iso()}
+             "stop_order_id": None, "time": now_iso(), "ts": time.time(), "reason": reason, "ctx": ctx,
+             "reminded": []}
         note = ""
         try:
             p["stop_order_id"] = self.ex.stop_loss_sell(symbol, qty, stop, tag=TAG)["orderId"]
@@ -67,12 +82,42 @@ class ManualTrader:
         return (f"Đã MUA {qty:g} {base} giá {avg:,.4f} ({p['cost']:,.2f} USDT). "
                 f"Stop {stop:,.4f} ({(stop / avg - 1) * 100:+.1f}%) nằm sẵn trên sàn." + note)
 
-    def _result(self, symbol: str, order: dict, how: str) -> str:
+    def _result(self, symbol: str, order: dict, how: str, exit_how: str = "tay") -> str:
         p = self.pos.pop(symbol)
         self.save()
         qty, avg, fee = fill_summary(order, self.ex.filters(symbol)["base"])
         pnl = qty * avg - fee - p["cost"]
-        return f"{how} {qty:g} {symbol} giá {avg:,.4f}: lãi/lỗ {pnl:+.2f} USDT ({pnl / p['cost'] * 100:+.2f}%)."
+        ret = pnl / p["cost"] * 100
+        note = self._journal(symbol, p, avg, ret, exit_how)
+        return (f"{how} {qty:g} {symbol} giá {avg:,.4f}: lãi/lỗ {pnl:+.2f} USDT ({ret:+.2f}%), "
+                f"sau phí thật ≈ {ret - REAL_FEE_RT_PCT:+.2f}%." + note)
+
+    def _journal(self, symbol: str, p: dict, exit_avg: float, ret_testnet: float, exit_how: str) -> str:
+        now = time.time()
+        ts = p.get("ts", now)
+        ctx, xctx = p.get("ctx") or {}, self._context(symbol)
+        e_px, x_px = ctx.get("price"), xctx.get("price")
+        # Lệnh bán tay: lấy giá thị trường thật lúc vào/ra. Stop khớp trên testnet: dùng kết quả testnet.
+        market = exit_how == "tay" and e_px and x_px
+        row = {"symbol": symbol, "entry_time": p.get("time"), "exit_time": now_iso(),
+               "minutes": round((now - ts) / 60, 1), "usdt": round(p["cost"], 2), "reason": p.get("reason", ""),
+               "exit_how": exit_how, "entry_testnet": p["entry"], "exit_testnet": exit_avg,
+               "ret_testnet_pct": round(ret_testnet, 4),
+               "ret_market_pct": round((x_px / e_px - 1) * 100, 4) if market else round(ret_testnet, 4),
+               "ret_source": "market" if market else "testnet"}
+        if self.excursion_fn and e_px:
+            try:
+                mfe, mae = self.excursion_fn(symbol, ts, now, e_px)
+                row["mfe_pct"], row["mae_pct"] = round(mfe, 4), round(mae, 4)
+            except Exception:
+                pass
+        row.update({f"e_{k}": v for k, v in ctx.items()})
+        row.update({f"x_{k}": v for k, v in xctx.items()})
+        try:
+            write_row(self.journal, row)
+            return ""
+        except OSError as e:
+            return f"\nKHÔNG ghi được nhật ký ({e})."
 
     def sell(self, symbol: str) -> str:
         p = self.pos.get(symbol)
@@ -92,11 +137,23 @@ class ManualTrader:
                 continue
             o = self.ex.get_order(symbol, p["stop_order_id"])
             if o.get("status") == "FILLED":
-                out.append(self._result(symbol, o, f"Stop {symbol} đã khớp:"))
+                out.append(self._result(symbol, o, f"Stop {symbol} đã khớp:", exit_how="stop"))
         return out
+
+    def open_pnl(self, symbol: str) -> str:
+        p = self.pos[symbol]
+        try:
+            ret = (self.ex.price(symbol) / p["entry"] - 1) * 100
+        except Exception:
+            return ""
+        return f", hiện {ret:+.2f}% (sau phí thật ≈ {ret - REAL_FEE_RT_PCT:+.2f}%)"
 
     def status(self) -> str:
         if not self.pos:
             return "Không có lệnh nào đang mở."
-        return "\n".join(f"{s}: {p['qty']:g} giá vào {p['entry']:,.4f}, stop {p['stop']:,.4f}, mua lúc {p['time']}"
-                         for s, p in self.pos.items())
+        now = time.time()
+        return "\n".join(
+            f"{s}: {p['qty']:g} giá vào {p['entry']:,.4f}, stop {p['stop']:,.4f}, "
+            f"đã giữ {(now - p.get('ts', now)) / 60:.0f} phút{self.open_pnl(s)}"
+            + (f"\n  lý do: {p['reason']}" if p.get("reason") else "")
+            for s, p in self.pos.items())
