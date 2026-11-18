@@ -1,23 +1,14 @@
 {
- "updated": "2026-11-18T20:18:54Z",
+ "updated": "2026-11-18T20:21:55Z",
  "fee_rt_pct": 0.2,
  "stats": {
-  "trades": 1,
+  "trades": 2,
   "win_rate_pct": 0.0,
-  "avg_net_pct": -0.2154,
-  "sum_net_pct": -0.2154,
-  "avg_minutes": 20.5
+  "avg_net_pct": -0.2575,
+  "sum_net_pct": -0.5149,
+  "avg_minutes": 25.2
  },
  "open": [
-  {
-   "symbol": "INJUSDT",
-   "entry": 7.034,
-   "usdt": 99.95,
-   "stop": 6.757042362195704,
-   "time": "2026-11-18T19:51:47Z",
-   "reason": "[Claude] Sức mạnh tương đối: INJ nhích 7.004→7.032 khi BTC tạo đáy thấp hơn và 27/29 coin giảm 1h; ATR5 0,54% đủ biến động. Stop dưới đáy 7.004 | kế hoạch: TP +0.8% / SL -0.45% / tối đa 30′",
-   "market_entry": 7.033
-  },
   {
    "symbol": "AAVEUSDT",
    "entry": 107.77999999999999,
@@ -29,6 +20,25 @@
   }
  ],
  "closed": [
+  {
+   "symbol": "INJUSDT",
+   "entry_time": "2026-11-18T19:51:47Z",
+   "exit_time": "2026-11-18T20:21:54Z",
+   "minutes": 30.0,
+   "usdt": 99.95,
+   "reason": "[Claude] Sức mạnh tương đối: INJ nhích 7.004→7.032 khi BTC tạo đáy thấp hơn và 27/29 coin giảm 1h; ATR5 0,54% đủ biến động. Stop dưới đáy 7.004 | kế hoạch: TP +0.8% / SL -0.45% / tối đa 30′",
+   "exit_how": "tay",
+   "ret_market_pct": -0.0995,
+   "net_pct": -0.2995,
+   "mfe_pct": 0.4408,
+   "mae_pct": -0.327,
+   "e_rsi_5m": 53.17582177970726,
+   "e_rsi_1h": 39.22969791168576,
+   "e_vol_ratio_5m": 1.0556244636016334,
+   "e_ret_1h_pct": 0.2137970353477625,
+   "e_above_ema200_1h": false,
+   "e_btc_above_ema200_1h": false
+  },
   {
    "symbol": "ETHUSDT",
    "entry_time": "2026-11-18T19:58:17Z",
