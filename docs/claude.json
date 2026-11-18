@@ -1,8 +1,12 @@
 {
- "updated": "2026-11-18T19:58:17Z",
+ "updated": "2026-11-18T20:18:54Z",
  "fee_rt_pct": 0.2,
  "stats": {
-  "trades": 0
+  "trades": 1,
+  "win_rate_pct": 0.0,
+  "avg_net_pct": -0.2154,
+  "sum_net_pct": -0.2154,
+  "avg_minutes": 20.5
  },
  "open": [
   {
@@ -22,16 +26,27 @@
    "time": "2026-11-18T19:58:02Z",
    "reason": "[Claude] Hồi sau 1h bị bán: BTC tạo đáy 62.570 rồi đáy cao dần; AAVE chạm 107,37 gần đáy 24h rồi giữ >107,7; ATR5 0,40%. Stop dưới đáy 107,37 | kế hoạch: TP +0.8% / SL -0.44% / tối đa 30′",
    "market_entry": 107.78
-  },
-  {
-   "symbol": "ETHUSDT",
-   "entry": 1757.2,
-   "usdt": 99.98,
-   "stop": 1717.5336540741046,
-   "time": "2026-11-18T19:58:17Z",
-   "reason": "[Claude] Hồi sau 1h bị bán: ETH đáy 1.753,6 rồi đáy cao dần theo BTC; RSI5 39 vừa rời vùng quá bán. Stop dưới đáy 1.753 | kế hoạch: TP +0.6% / SL -0.29% / tối đa 30′",
-   "market_entry": 1757.2
   }
  ],
- "closed": []
+ "closed": [
+  {
+   "symbol": "ETHUSDT",
+   "entry_time": "2026-11-18T19:58:17Z",
+   "exit_time": "2026-11-18T20:18:53Z",
+   "minutes": 20.5,
+   "usdt": 99.98,
+   "reason": "[Claude] Hồi sau 1h bị bán: ETH đáy 1.753,6 rồi đáy cao dần theo BTC; RSI5 39 vừa rời vùng quá bán. Stop dưới đáy 1.753 | kế hoạch: TP +0.6% / SL -0.29% / tối đa 30′",
+   "exit_how": "tay",
+   "ret_market_pct": -0.0154,
+   "net_pct": -0.2154,
+   "mfe_pct": 0.1212,
+   "mae_pct": -0.1832,
+   "e_rsi_5m": 42.34405252315384,
+   "e_rsi_1h": 38.83852622181507,
+   "e_vol_ratio_5m": 0.6072651342461711,
+   "e_ret_1h_pct": -0.7233977671235126,
+   "e_above_ema200_1h": false,
+   "e_btc_above_ema200_1h": false
+  }
+ ]
 }
