@@ -1,25 +1,34 @@
 {
- "updated": "2026-11-18T20:21:55Z",
+ "updated": "2026-11-18T20:28:15Z",
  "fee_rt_pct": 0.2,
  "stats": {
-  "trades": 2,
-  "win_rate_pct": 0.0,
-  "avg_net_pct": -0.2575,
-  "sum_net_pct": -0.5149,
-  "avg_minutes": 25.2
+  "trades": 3,
+  "win_rate_pct": 33.3,
+  "avg_net_pct": -0.1393,
+  "sum_net_pct": -0.418,
+  "avg_minutes": 26.9
  },
- "open": [
+ "open": [],
+ "closed": [
   {
    "symbol": "AAVEUSDT",
-   "entry": 107.77999999999999,
+   "entry_time": "2026-11-18T19:58:02Z",
+   "exit_time": "2026-11-18T20:28:14Z",
+   "minutes": 30.1,
    "usdt": 99.91,
-   "stop": 104.50189775529849,
-   "time": "2026-11-18T19:58:02Z",
    "reason": "[Claude] Hồi sau 1h bị bán: BTC tạo đáy 62.570 rồi đáy cao dần; AAVE chạm 107,37 gần đáy 24h rồi giữ >107,7; ATR5 0,40%. Stop dưới đáy 107,37 | kế hoạch: TP +0.8% / SL -0.44% / tối đa 30′",
-   "market_entry": 107.78
-  }
- ],
- "closed": [
+   "exit_how": "tay",
+   "ret_market_pct": 0.2969,
+   "net_pct": 0.0969,
+   "mfe_pct": 0.6959,
+   "mae_pct": -0.4175,
+   "e_rsi_5m": 47.46010833730242,
+   "e_rsi_1h": 38.80659940454043,
+   "e_vol_ratio_5m": 0.4718731627575725,
+   "e_ret_1h_pct": -0.13903049402169687,
+   "e_above_ema200_1h": false,
+   "e_btc_above_ema200_1h": false
+  },
   {
    "symbol": "INJUSDT",
    "entry_time": "2026-11-18T19:51:47Z",
