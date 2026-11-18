@@ -106,6 +106,12 @@ tr.new td { background: color-mix(in srgb, var(--accent) 16%, transparent); }
     <div class="wrap" id="manual"></div>
     <div class="pager" id="manual-pager"></div>
   </section>
+  <section class="card" id="mj-card" hidden>
+    <h2>Nhật ký lệnh tay <span class="meta" id="mj-meta"></span></h2>
+    <div class="mut" id="mj-sum" style="margin-bottom:6px"></div>
+    <div class="wrap" id="journal"></div>
+    <div class="pager" id="journal-pager"></div>
+  </section>
   <section class="card">
     <h2>Radar — gần điểm mua nhất <span class="meta">mua khi đóng cửa ngày vượt mốc</span></h2>
     <div class="wrap" id="radar"></div>
@@ -267,6 +273,49 @@ function renderLive() {
   $("live").innerHTML = `<span class="dot ${LIVE_OK ? "on" : ""}"></span>${LIVE_OK ? "giá trực tiếp" : "đang kết nối giá…"} · chốt nến sau ${h}g${String(mi).padStart(2, "0")}`;
   renderFills();
   renderManual(M, mUnreal);
+  renderJournal();
+}
+
+let MJ = null;
+const mins = iso => Math.max(0, (Date.now() - new Date(iso)) / 6e4);
+const reasonCell = r => `<span class="mut" style="white-space:normal;display:inline-block;min-width:140px" title="${esc(r.reason || "")}">${esc(r.reason || "—")}</span>`;
+function renderJournal() {
+  const J = MJ;
+  $("mj-card").hidden = !J || (!J.open.length && !J.closed.length);
+  if ($("mj-card").hidden) return;
+  const fee = J.fee_rt_pct, s = J.stats;
+  $("mj-meta").textContent = `cập nhật ${vnTime(J.updated)}`;
+  $("mj-sum").innerHTML = s.trades
+    ? `${s.trades} lệnh đã đóng · thắng ${fmt(s.win_rate_pct, 0)}% · lãi TB <b class="${cls(s.avg_net_pct)}">${pct(s.avg_net_pct)}</b>/lệnh · giữ TB ${fmt(s.avg_minutes, 0)} phút · <i>đã trừ phí thật ${fmt(fee, 1)}% khứ hồi, theo giá thị trường thật</i>`
+    : `Chưa có lệnh đóng · lãi/lỗ tính sau phí thật ${fmt(fee, 1)}% khứ hồi`;
+  const open = J.open.map(o => {
+    const p = LIVE[o.symbol], e = o.market_entry || o.entry;
+    return { ...o, price: p, net: p ? (p / e - 1) * 100 - fee : null, held: mins(o.time) };
+  });
+  $("journal").innerHTML = (open.length ? table([
+    { h: "Đang giữ", f: r => `<b>${coin(r.symbol)}</b> <span class="mut">${fmt(r.usdt, 0)} USDT</span>` },
+    { h: "Đã giữ", r: 1, f: r => `<span class="${r.held >= 30 ? "neg" : r.held >= 15 ? "pos" : ""}">${fmt(r.held, 0)} phút</span>` },
+    { h: "Hiện tại", r: 1, f: r => r.price ? `<span class="${FLASH[r.symbol] || ""}">${px(r.price)}</span>` : "—" },
+    { h: "Sau phí", r: 1, f: r => r.net == null ? "—" : pct(r.net), c: r => cls(r.net || 0) },
+    { h: "Lý do", f: reasonCell },
+  ], open) : "") + table([
+    { h: "Coin", f: r => `<b>${coin(r.symbol)}</b>` + (r.exit_how === "stop" ? ` <span class="tag">stop</span>` : "") },
+    { h: "Vào", f: r => `${vnClock(+new Date(r.entry_time))} <span class="mut">${vnDate(r.entry_time)}</span>` },
+    { h: "Giữ", r: 1, f: r => `${fmt(r.minutes, 0)}′` },
+    { h: "Sau phí", r: 1, f: r => r.net_pct == null ? "—" : pct(r.net_pct), c: r => cls(r.net_pct || 0) },
+    { h: "Cao / thấp", r: 1, f: r => r.mfe_pct == null ? "—" : `<span class="mut">${pct(r.mfe_pct, 1)} / ${pct(r.mae_pct, 1)}</span>` },
+    { h: "Lý do", f: reasonCell },
+  ], paged("journal", J.closed, 10, "lệnh"));
+}
+
+async function loadManual() {
+  try {
+    const r = await fetch("manual.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return;
+    MJ = await r.json();
+    if (DATA) startFeed(DATA);
+    DIRTY = true;
+  } catch (e) {}
 }
 
 function render(D) {
@@ -464,7 +513,7 @@ async function pollRest(syms) {
 }
 function startFeed(D, M = liveTrips()) {
   const syms = [...new Set([...(D.radar || []).map(r => r.symbol), ...D.positions.map(p => p.symbol),
-                            ...M.open.map(o => o.symbol)])].sort(), key = syms.join(",");
+                            ...M.open.map(o => o.symbol), ...(MJ?.open || []).map(o => o.symbol)])].sort(), key = syms.join(",");
   if (!syms.length || key === WS_KEY) return;
   WS_KEY = key;
   if (WS) { WS.onclose = null; WS.close(); }
@@ -493,9 +542,11 @@ async function load() {
   try { render(await (await fetch("data.json?t=" + Date.now(), { cache: "no-store" })).json()); }
   catch (e) { $("alert").innerHTML = `<div class="alert">Không tải được dữ liệu bot: ${esc(e.message)}</div>`; }
   await loadFills();
+  await loadManual();
 }
 load();
 setInterval(load, 5 * 60 * 1000);
+setInterval(loadManual, 60 * 1000);
 let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => DATA && chart(DATA.equity_curve, DATA.initial_capital), 200); });
 </script>
 </body>
