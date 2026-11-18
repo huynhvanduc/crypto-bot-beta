@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T20:28:15Z",
+ "updated": "2026-11-18T21:13:56Z",
  "fee_rt_pct": 0.2,
  "stats": {
   "trades": 3,
@@ -8,7 +8,17 @@
   "sum_net_pct": -0.418,
   "avg_minutes": 26.9
  },
- "open": [],
+ "open": [
+  {
+   "symbol": "BTCUSDT",
+   "entry": 62470.63999999999,
+   "usdt": 19.99,
+   "stop": 61417.89118012949,
+   "time": "2026-11-18T21:13:55Z",
+   "reason": "[Claude] kiểm tra OCO (lệnh thử, bán ngay) | TP +2% / SL -1%",
+   "market_entry": 62466.01
+  }
+ ],
  "closed": [
   {
    "symbol": "AAVEUSDT",
