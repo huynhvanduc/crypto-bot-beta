@@ -8,7 +8,7 @@ from typing import Callable
 
 import requests
 
-from .fills import fill_from_event, fill_from_rest, iso_ms, key, merge, round_trips
+from .fills import classify, fill_from_event, fill_from_rest, iso_ms, key, merge, round_trips
 
 BALANCE_WAIT = 0.5
 KEEP = 200
@@ -41,6 +41,9 @@ class FillWatcher:
         if self.fills_path.exists():
             d = json.loads(self.fills_path.read_text(encoding="utf-8"))
             self.fills, self.usdt = d.get("fills", []), d.get("usdt")
+            for f in self.fills:  # lệnh lưu trước khi có nhãn mới (vd. ai-) vẫn mang nhãn "tay"
+                if f.get("source") == "tay":
+                    f["source"] = classify(f.get("client_id"), f.get("order_id", 0), set())
 
     def save(self) -> None:
         self.fills_path.parent.mkdir(parents=True, exist_ok=True)

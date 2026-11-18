@@ -13,6 +13,8 @@ def classify(client_id: str | None, order_id: int, bot_order_ids: set[int]) -> s
         return "d1"
     if cid.startswith("scalp-"):
         return "scalp"
+    if cid.startswith("ai-"):
+        return "ai"
     return "tay"
 
 

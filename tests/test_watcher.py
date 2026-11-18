@@ -118,6 +118,19 @@ def test_load_restores_saved_fills(tmp_path):
     assert w2.fills == w.fills and w2.usdt == 5.0
 
 
+def test_load_relabels_old_tay_fills(tmp_path):
+    w, _ = make(tmp_path)
+    w.handle(report(c="ai-1-0", t=1))
+    w.handle(report(c="tg-1-0", t=2))
+    w.handle(balance(5))
+    for f in w.fills:
+        f["source"] = "tay"
+    w.save()
+    w2, _ = make(tmp_path)
+    w2.load()
+    assert [f["source"] for f in w2.fills] == ["ai", "tay"]
+
+
 def test_export_writes_public_file(tmp_path):
     w, _ = make(tmp_path)
     w.handle(report(t=1, i=1))

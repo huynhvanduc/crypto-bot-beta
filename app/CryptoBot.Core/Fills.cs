@@ -27,6 +27,7 @@ public static class Fills
         if (cid.StartsWith("d1-") || botOrderIds.Contains(orderId)) return "d1";
         if (cid.StartsWith("scalp-")) return "scalp";
         if (cid.StartsWith("nc-")) return "nc";
+        if (cid.StartsWith("ai-")) return "ai";
         return "tay";
     }
 

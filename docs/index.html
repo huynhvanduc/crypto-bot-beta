@@ -204,7 +204,7 @@ function paged(id, rows, per, unit) {
   return rows.slice(p * per, (p + 1) * per);
 }
 let FILLS = null, RT = [], RT_USDT = null, NEW = {}, NT = null, NT_OK = false, NT_TOPIC = "", REFETCH = null;
-const SRC = { d1: "Bot D1", scalp: "Lướt sóng", nc: "Nghiên cứu", tay: "Tay" };
+const SRC = { d1: "Bot D1", scalp: "Lướt sóng", nc: "Nghiên cứu", tay: "Tay", ai: "Claude" };
 const fkey = f => f.symbol + ":" + f.trade_id;
 const vnClock = ms => new Date(ms).toLocaleTimeString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour12: false });
 const fillsUpdated = () => FILLS ? +new Date(FILLS.updated) : 0;

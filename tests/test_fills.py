@@ -24,6 +24,7 @@ def test_non_trade_events_ignored():
 def test_classify():
     assert classify("d1-1-0", 1, set()) == "d1"
     assert classify("scalp-1-0", 1, set()) == "scalp"
+    assert classify("ai-1-0", 1, set()) == "ai"
     assert classify("web_abc", 7, {7}) == "d1"
     assert classify("", 1, set()) == "tay"
     assert classify(None, 1, set()) == "tay"
