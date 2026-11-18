@@ -1,0 +1,19 @@
+{
+ "updated": "2026-11-18T19:51:47Z",
+ "fee_rt_pct": 0.2,
+ "stats": {
+  "trades": 0
+ },
+ "open": [
+  {
+   "symbol": "INJUSDT",
+   "entry": 7.034,
+   "usdt": 99.95,
+   "stop": 6.757042362195704,
+   "time": "2026-11-18T19:51:47Z",
+   "reason": "[Claude] Sức mạnh tương đối: INJ nhích 7.004→7.032 khi BTC tạo đáy thấp hơn và 27/29 coin giảm 1h; ATR5 0,54% đủ biến động. Stop dưới đáy 7.004 | kế hoạch: TP +0.8% / SL -0.45% / tối đa 30′",
+   "market_entry": 7.033
+  }
+ ],
+ "closed": []
+}
