@@ -192,7 +192,6 @@ function render(D) {
   const warns = [];
   if (D.error) warns.push(`Lần chạy gần nhất bị lỗi: ${esc(D.error)}`);
   if (acc.ok === false) warns.push("Không kết nối được sàn ở lần chạy gần nhất.");
-  if ((Date.now() - new Date(D.updated)) / 36e5 > 30) warns.push("Bot hơn 30 giờ chưa chạy — kiểm tra máy hoặc lịch chạy.");
   $("alert").innerHTML = warns.map(w => `<div class="alert">${w}</div>`).join("");
   renderLive();
 }

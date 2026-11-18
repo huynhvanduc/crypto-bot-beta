@@ -9,13 +9,11 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from .config import Config
-from .data import PUBLIC_API
+from .common import PUBLIC_API, SYMBOLS
 from .indicators import atr, ema, rsi
 
 REAL_FEE_RT_PCT = 0.2          # phí thật Binance spot 0,1 %/chiều; testnet không thu phí
 MIN_USDT, MAX_USDT, DEFAULT_USDT = 10.0, 1000.0, 100.0
-SYMBOLS = Config().symbols
 
 
 def parse_buy(text: str, symbols=SYMBOLS) -> tuple[str, float, str] | str:

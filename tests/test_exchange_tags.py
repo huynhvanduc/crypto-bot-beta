@@ -1,8 +1,4 @@
-import inspect
-
 from bot.exchange import BinanceSpot, client_id
-from bot.live import LiveTrader
-from bot.sim_exchange import SimExchange
 
 
 class Rec(BinanceSpot):
@@ -44,23 +40,3 @@ def test_my_trades_request():
     ex.my_trades("BTCUSDT", from_id=5)
     assert ex.calls[0] == ("GET", "/api/v3/myTrades", {"symbol": "BTCUSDT", "fromId": 5, "limit": 1000})
 
-
-def test_sim_exchange_accepts_tag():
-    for name in ("market_buy_quote", "market_sell", "stop_loss_sell"):
-        assert "tag" in inspect.signature(getattr(SimExchange, name)).parameters
-
-
-class StopEx:
-    def __init__(self):
-        self.calls = []
-
-    def stop_loss_sell(self, sym, qty, stop, tag=None):
-        self.calls.append(tag)
-        return {"orderId": 1}
-
-
-def test_bot_tags_its_orders():
-    ex = StopEx()
-    LiveTrader(ex, {"slots": {"BTCUSDT": 100.0}, "log": [], "positions": {}})._place_stop(
-        "BTCUSDT", {"qty": 0.001, "stop": 60000.0})
-    assert ex.calls == ["d1"]

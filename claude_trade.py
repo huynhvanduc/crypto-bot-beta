@@ -17,13 +17,12 @@ import requests
 
 import bot.manual as manual
 from bot.ai_limits import Limits, check, day_loss, today_vn
-from bot.data import PUBLIC_API
+from bot.common import PUBLIC_API, now_iso
 from bot.exchange import BinanceSpot
 from bot.filelock import file_lock
 from bot.gitops import git
 from bot.gitops import push as git_push
 from bot.journal import REAL_FEE_RT_PCT, SYMBOLS, export_docs, market_excursion, snapshot
-from bot.live import now_iso
 
 sys.stdout.reconfigure(encoding="utf-8")
 manual.TAG = "ai"

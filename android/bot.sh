@@ -12,18 +12,7 @@ supervise() {
     if grep -q '^TELEGRAM_BOT_TOKEN=..*' .env 2>/dev/null; then
         (while true; do python telegram_bot.py >> live/telegram.log 2>&1; sleep 10; done) &
     fi
-    while true; do
-        today=$(date -u +%F)
-        if [ "$(date -u +%H%M)" -ge 0005 ] && [ "$(cat live/last_daily 2>/dev/null)" != "$today" ]; then
-            echo "$(date -u +%FT%TZ) chạy bot D1" >> live/run.log
-            if python live_trade.py --push >> live/run.log 2>&1; then
-                echo "$today" > live/last_daily
-            else
-                sleep 540
-            fi
-        fi
-        sleep 60
-    done
+    wait
 }
 
 case "${1:-status}" in
@@ -32,7 +21,7 @@ case "${1:-status}" in
         termux-wake-lock 2>/dev/null || true
         setsid bash "$DIR/android/bot.sh" _supervise >> live/android.log 2>&1 < /dev/null &
         echo $! > "$PID"
-        echo "Đã chạy bot (pid $!). Bot D1: 07:05 giờ VN mỗi ngày (chạy bù nếu điện thoại tắt lúc đó)."
+        echo "Đã chạy watcher lệnh khớp + Telegram (pid $!)."
         ;;
     stop)
         if running; then kill -- -"$(cat "$PID")" 2>/dev/null || kill "$(cat "$PID")"; fi
@@ -44,11 +33,7 @@ case "${1:-status}" in
         if running; then echo "Đang chạy (pid $(cat "$PID"))."; else echo "KHÔNG chạy."; fi
         echo "--- watcher"; tail -n 5 live/watch.log 2>/dev/null
         echo "--- telegram"; tail -n 3 live/telegram.log 2>/dev/null || echo "(không chạy: .env thiếu TELEGRAM_BOT_TOKEN)"
-        echo "--- bot D1 (lần chạy gần nhất: $(cat live/last_daily 2>/dev/null || echo chưa))"; tail -n 5 live/run.log 2>/dev/null
         ;;
-    ban-het) python live_trade.py --close-all --push ;;
-    tam-dung) python live_trade.py --pause --push ;;
-    tiep-tuc) python live_trade.py --resume --push ;;
     _supervise) supervise ;;
-    *) echo "Dùng: bash $DIR/android/bot.sh {start|stop|status|ban-het|tam-dung|tiep-tuc}"; exit 1 ;;
+    *) echo "Dùng: bash $DIR/android/bot.sh {start|stop|status}"; exit 1 ;;
 esac

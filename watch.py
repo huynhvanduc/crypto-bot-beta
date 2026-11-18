@@ -1,6 +1,5 @@
 import json
 import os
-import subprocess
 import sys
 import threading
 import time
@@ -8,18 +7,16 @@ from pathlib import Path
 
 from websocket import WebSocketTimeoutException, create_connection
 
-from bot.config import Config
+from bot.common import SYMBOLS, UNSUPPORTED, now_iso
 from bot.exchange import BinanceSpot, sign
 from bot.filelock import file_lock
 from bot.gitops import git
 from bot.gitops import push as git_push
-from bot.live import UNSUPPORTED, now_iso
 from bot.watcher import FillWatcher, ntfy_publisher
 
 sys.stdout.reconfigure(encoding="utf-8")
 
 PUSH_EVERY = 60.0
-BOT_RUN_EVERY = 60.0
 LOG = Path("live/watch.log")
 
 
@@ -63,13 +60,6 @@ def push_fills() -> bool:
         return False
 
 
-def run_bot() -> None:
-    log("Stop của bot D1 vừa khớp → chạy live_trade.py --push để chốt sổ")
-    r = subprocess.run([sys.executable, "live_trade.py", "--push"], capture_output=True, text=True,
-                       encoding="utf-8", env={**os.environ, "PYTHONIOENCODING": "utf-8"})
-    log(f"live_trade.py kết thúc (mã {r.returncode})")
-
-
 class Background:
 
     def __init__(self):
@@ -89,12 +79,12 @@ def main() -> None:
     topic = os.environ.get("NTFY_TOPIC", "").strip()
     if not ex.has_keys or not topic:
         sys.exit("Cần BINANCE_API_KEY, BINANCE_API_SECRET và NTFY_TOPIC trong .env")
-    symbols = [s for s in Config().symbols if s not in UNSUPPORTED]
+    symbols = [s for s in SYMBOLS if s not in UNSUPPORTED]
     w = FillWatcher(ex, ntfy_publisher(topic, log), symbols, topic=topic)
     w.load()
     w.dirty = True
-    pusher, bot = Background(), Background()
-    last_push = last_bot = 0.0
+    pusher = Background()
+    last_push = 0.0
     delay = 5
     log(f"Bắt đầu theo dõi ({'testnet' if ex.is_testnet else 'LIVE'}), {len(symbols)} coin"
         + (", KHÔNG đẩy GitHub" if no_push else ""))
@@ -127,10 +117,6 @@ def main() -> None:
                     last_push = now
                     if not no_push:
                         pusher.start(push_job)
-                if w.bot_stop_filled and not bot.busy() and now - last_bot >= BOT_RUN_EVERY:
-                    w.bot_stop_filled = False
-                    last_bot = now
-                    bot.start(run_bot)
         except KeyboardInterrupt:
             log("Dừng theo dõi")
             break
