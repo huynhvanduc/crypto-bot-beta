@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CryptoBot.Core;
 
 namespace CryptoBot.App;
@@ -11,60 +12,39 @@ public class App : Application
 {
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        UserAppTheme = AppTheme.Dark;
-        var shell = new Shell
+        UserAppTheme = AppTheme.Light;
+        return new Window(new Shell
         {
-            BackgroundColor = T.Bg,
-            Items =
-            {
-                new TabBar
-                {
-                    Items =
-                    {
-                        new ShellContent { Title = "Bot D1", Content = new OverviewPage() },
-                        new ShellContent { Title = "Radar", Content = new RadarPage() },
-                        new ShellContent { Title = "Lướt", Content = new ResearchPage() },
-                        new ShellContent { Title = "Lịch sử", Content = new HistoryPage() },
-                        new ShellContent { Title = "Cài đặt", Content = new SettingsPage() },
-                    },
-                },
-            },
-        };
-        Shell.SetTabBarBackgroundColor(shell, Color.FromArgb("#0F1729"));
-        Shell.SetTabBarTitleColor(shell, T.Green);
-        Shell.SetTabBarUnselectedColor(shell, T.Muted);
-        Shell.SetTabBarForegroundColor(shell, T.Green);
-        Shell.SetBackgroundColor(shell, T.Bg);
-        Shell.SetTitleColor(shell, T.Text);
-        return new Window(shell);
+            Items = { new TabBar { Items = {
+                new ShellContent { Title = "Tổng quan", Content = new MainPage() },
+                new ShellContent { Title = "Cài đặt", Content = new SettingsPage() } } } },
+        });
     }
 }
 
-public static class BotHost
+public static class Host
 {
-    static BotEngine? _engine;
-    public static BotEngine Engine => _engine ??= new BotEngine(FileSystem.AppDataDirectory, LoadSettings());
+    public static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
+    static Binance? _ex;
 
-    public static bool Enabled
+    static string Secure(string k) => Task.Run(() => SecureStorage.GetAsync(k)).Result ?? "";
+
+    public static string Key => Secure("key");
+    public static string Secret => Secure("secret");
+    public static Binance Exchange => _ex ??= new(Http, Key, Secret);
+    public static string Dashboard => Preferences.Get("dashboard", "https://huynhvanduc.github.io/crypto-bot-beta");
+
+    public static List<Position> Positions
     {
-        get => Preferences.Get("enabled", true);
-        set => Preferences.Set("enabled", value);
+        get => JsonSerializer.Deserialize<List<Position>>(Preferences.Get("positions", "[]")) ?? [];
+        set => Preferences.Set("positions", JsonSerializer.Serialize(value));
     }
 
-    static string Get(string k, string def = "") => Task.Run(() => SecureStorage.GetAsync(k)).Result ?? def;
-
-    public static BotSettings LoadSettings() => new(Get("key"), Get("secret"), Get("base", BinanceClient.TestnetUrl), Get("ntfy"),
-        Get("gh_token"), Get("gh_repo", "huynhvanduc/crypto-bot-beta"));
-
-    public static async Task SaveAsync(BotSettings s)
+    public static async Task SaveAsync(string key, string secret, string dashboard)
     {
-        await SecureStorage.SetAsync("key", s.ApiKey);
-        await SecureStorage.SetAsync("secret", s.ApiSecret);
-        await SecureStorage.SetAsync("base", s.BaseUrl);
-        await SecureStorage.SetAsync("ntfy", s.NtfyTopic);
-        await SecureStorage.SetAsync("gh_token", s.GitHubToken);
-        await SecureStorage.SetAsync("gh_repo", s.GitHubRepo);
-        Engine.Settings = s;
-        if (Engine.Running) { Engine.Stop(); Engine.Start(); }
+        await SecureStorage.SetAsync("key", key.Trim());
+        await SecureStorage.SetAsync("secret", secret.Trim());
+        Preferences.Set("dashboard", dashboard.Trim().TrimEnd('/'));
+        _ex = null;
     }
 }

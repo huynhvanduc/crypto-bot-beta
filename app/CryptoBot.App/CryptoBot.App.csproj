@@ -10,8 +10,8 @@
     <Nullable>enable</Nullable>
     <ApplicationTitle>Crypto Bot</ApplicationTitle>
     <ApplicationId>com.cryptobot.d1</ApplicationId>
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>2.0</ApplicationDisplayVersion>
+    <ApplicationVersion>2</ApplicationVersion>
     <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == '' And Exists('D:\Android\sdk')">D:\Android\sdk</AndroidSdkDirectory>
