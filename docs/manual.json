@@ -1,0 +1,19 @@
+{
+ "updated": "2026-11-18T19:40:49Z",
+ "fee_rt_pct": 0.2,
+ "stats": {
+  "trades": 0
+ },
+ "open": [
+  {
+   "symbol": "SOLUSDT",
+   "entry": 73.24,
+   "usdt": 199.95,
+   "stop": 71.40535804068246,
+   "time": "2026-11-18T19:35:58Z",
+   "reason": "phá đỉnh 1h, volume lớn",
+   "market_entry": 73.18
+  }
+ ],
+ "closed": []
+}
