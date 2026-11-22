@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T09:09:32Z",
+ "updated": "2026-11-22T09:09:56Z",
  "fee_rt_pct": 0.2,
  "stats": {
   "trades": 4,
@@ -26,6 +26,15 @@
    "time": "2026-11-22T09:09:32Z",
    "reason": "[Claude] Đảo chiều đồng loạt 29/29 xanh 1h. INJ +1.94% 1h/+3.28% 4h (BTC +0.82%), vol5x 1.5 cao nhất nhóm dẫn, ATR5 0.54%, RSI5 65 | TP +2.2% / SL -1.2%",
    "market_entry": 6.082
+  },
+  {
+   "symbol": "ETHUSDT",
+   "entry": 1685.3200000000002,
+   "usdt": 149.99,
+   "stop": 1649.2084662550603,
+   "time": "2026-11-22T09:09:54Z",
+   "reason": "[Claude] Thị trường đảo chiều tăng 29/29 coin xanh 1h; ETH +1.23% 1h > BTC +1.17%, RSI15 70, trên EMA20 5m 0.53%, 24h +3.62% | TP +1.6% / SL -1%",
+   "market_entry": 1685.0
   }
  ],
  "closed": [
