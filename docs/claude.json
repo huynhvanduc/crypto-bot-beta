@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T09:09:19Z",
+ "updated": "2026-11-22T09:09:32Z",
  "fee_rt_pct": 0.2,
  "stats": {
   "trades": 4,
@@ -17,6 +17,15 @@
    "time": "2026-11-22T09:09:18Z",
    "reason": "[Claude] Đảo chiều đồng loạt: 29/29 coin xanh 1h, BTC +1.17% 1h. NEAR mạnh nhất +2.20% 1h/+8.46% 24h, pos24 0.90, RSI15 68, ATR5 0.51% | TP +2.2% / SL -1.2%",
    "market_entry": 2.916
+  },
+  {
+   "symbol": "INJUSDT",
+   "entry": 6.0809999999999995,
+   "usdt": 149.96,
+   "stop": 5.866287866374556,
+   "time": "2026-11-22T09:09:32Z",
+   "reason": "[Claude] Đảo chiều đồng loạt 29/29 xanh 1h. INJ +1.94% 1h/+3.28% 4h (BTC +0.82%), vol5x 1.5 cao nhất nhóm dẫn, ATR5 0.54%, RSI5 65 | TP +2.2% / SL -1.2%",
+   "market_entry": 6.082
   }
  ],
  "closed": [
