@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T21:14:15Z",
+ "updated": "2026-11-22T09:09:19Z",
  "fee_rt_pct": 0.2,
  "stats": {
   "trades": 4,
@@ -8,7 +8,17 @@
   "sum_net_pct": -0.6523,
   "avg_minutes": 20.2
  },
- "open": [],
+ "open": [
+  {
+   "symbol": "NEARUSDT",
+   "entry": 2.917,
+   "usdt": 149.93,
+   "stop": 2.8207849100873417,
+   "time": "2026-11-22T09:09:18Z",
+   "reason": "[Claude] Đảo chiều đồng loạt: 29/29 coin xanh 1h, BTC +1.17% 1h. NEAR mạnh nhất +2.20% 1h/+8.46% 24h, pos24 0.90, RSI15 68, ATR5 0.51% | TP +2.2% / SL -1.2%",
+   "market_entry": 2.916
+  }
+ ],
  "closed": [
   {
    "symbol": "BTCUSDT",
